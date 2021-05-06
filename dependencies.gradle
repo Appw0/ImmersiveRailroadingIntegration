@@ -13,6 +13,9 @@ buildscript {
 
 repositories {
     maven { url = "http://maven.cil.li/" }
+	flatDir {
+		dirs 'libs'
+	}
 }
 
 sourceSets {
@@ -24,7 +27,7 @@ sourceSets {
 }
 
 dependencies {
-	compile files(CurseForge.asset(231951, 2488414)) // Immersive Engineering
+	compile files("libs/ImmersiveEngineering-0.12") // Immersive Engineering
 	compile files(CurseForge.asset(223815, 2551739)) // IGWMod
 	compile "li.cil.oc:OpenComputers:MC1.12.2-1.7.+:api"
 	runtime "li.cil.oc:OpenComputers:MC1.12.2-1.7.+"

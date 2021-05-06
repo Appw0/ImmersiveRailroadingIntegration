@@ -5,6 +5,7 @@ import cam72cam.immersiverailroading.physics.PhysicsAccummulator;
 import cam72cam.immersiverailroading.registry.EntityRollingStockDefinition;
 import cam72cam.immersiverailroading.registry.LocomotiveDefinition;
 import cam72cam.immersiverailroading.tile.TileRailBase;
+import cam72cam.mod.fluid.Fluid;
 import cam72cam.mod.math.Vec3i;
 import cam72cam.immersiverailroading.thirdparty.event.TagEvent;
 import net.minecraft.util.EnumFacing;
@@ -14,6 +15,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import java.util.*;
 
@@ -40,13 +43,14 @@ public class CommonAPI {
     }
 
     public FluidStack getFluid() {
-        /*
-        Capability<ITank> energyCapability = CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY;
-        ITank fh = stock.getCapability(energyCapability, null);
-        if (fh != null) {
-            return fh.drain(Integer.MAX_VALUE, false);
+//        Capability<ITank> energyCapability = CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY;
+//        ITank fh = stock.getCapability(energyCapability, null);
+//        if (fh != null) {
+//            return fh.drain(Integer.MAX_VALUE, false);
+//        }
+        if (stock instanceof FreightTank) {
+            return ((FreightTank) stock).theTank.getContents().internal;
         }
-        */
         return null;
     }
 
@@ -94,16 +98,20 @@ public class CommonAPI {
                 }
             }
 
-            FluidStack fluid = getFluid();
-            if (fluid != null) {
-                info.put("fluid_type", fluid.getFluid().getName());
-                info.put("fluid_amount", fluid.amount);
-            } else {
-                info.put("fluid_type", null);
-                info.put("fluid_amount", 0);
-            }
+//            FluidStack fluid = getFluid();
+//            if (fluid != null) {
+//                info.put("fluid_type", fluid.getFluid().getName());
+//                info.put("fluid_amount", fluid.amount);
+//            } else {
+//                info.put("fluid_type", null);
+//                info.put("fluid_amount", 0);
+//            }
             if (stock instanceof FreightTank) {
-                info.put("fluid_max", ((FreightTank) stock).getTankCapacity().MilliBuckets());
+                FreightTank tanker = (FreightTank) stock;
+                Fluid fluid = tanker.getLiquid();
+                info.put("fluid_type", fluid != null ? tanker.getLiquid().ident : null);
+                info.put("fluid_amount", tanker.getLiquidAmount());
+                info.put("fluid_max", tanker.getTankCapacity().MilliBuckets());
             }
 
             if (stock instanceof Freight) {
@@ -127,6 +135,7 @@ public class CommonAPI {
         stock.mapTrain(stock, true, true, acc::accumulate);
         Map<String, Object> info = new HashMap<>();
         List<Object> locos = new ArrayList<>();
+        List<Object> cars = new ArrayList<>();
 
         info.put("cars", acc.count);
         info.put("tractive_effort_N", acc.tractiveEffortNewtons);
@@ -143,16 +152,25 @@ public class CommonAPI {
                 LocomotiveDefinition locoDef = ((Locomotive) car).getDefinition();
                 traction += locoDef.getStartingTractionNewtons(car.gauge);
                 locos.add(new CommonAPI(car).info());
+            } else {
+                cars.add(new CommonAPI(car).info());
             }
         }
         if (supportsList) {
             info.put("locomotives", locos);
+            info.put("cars", cars);
         } else {
             Map<String, Object> locomotives = new HashMap<>();
             for (int i = 0; i < locos.size(); i++) {
                 locomotives.put("" + i, locos.get(i));
             }
             info.put("locomotives", locomotives);
+
+            Map<String, Object> trainCars = new HashMap<>();
+            for (int i = 0; i < cars.size(); i++) {
+                trainCars.put("" + i, cars.get(i));
+            }
+            info.put("cars", trainCars);
         }
         info.put("total_traction_N", traction);
         return info;

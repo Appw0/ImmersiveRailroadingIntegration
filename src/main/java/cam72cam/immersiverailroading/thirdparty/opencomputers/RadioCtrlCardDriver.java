@@ -145,6 +145,16 @@ public class RadioCtrlCardDriver implements DriverItem {
 			return null;
 		}
 
+		@Callback(doc = "function():table -- returns an info dump about the locomotive")
+		public Object[] info(Context context, Arguments args) {
+			return new Object[] { api.info() };
+		}
+
+		@Callback(doc = "function():table -- returns an info dump about the locomotive's consist")
+		public Object[] consist(Context context, Arguments arguments) {
+			return new Object[] { api.consist(true) };
+		}
+
 		@Callback(doc = "function():araray -- returns the UUID of the bound loco")
 		public Object[] getLinkUUID(Context context, Arguments args) {
 			if (radioDrain()) {
